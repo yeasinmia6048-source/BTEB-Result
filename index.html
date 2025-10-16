@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BTEB Result</title>
+<style>
+  body{font-family:sans-serif; background:#f6f8fb; padding:30px; color:#111}
+  .container{max-width:700px;margin:auto;}
+  .card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+  input, button{padding:10px; font-size:15px; border-radius:6px;}
+  input{flex:1;border:1px solid #ddd;margin-right:10px;}
+  button{background:#0b63d6;color:#fff;border:none;cursor:pointer;}
+  .output{margin-top:20px;}
+  .result-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .result-table td{padding:8px;border-bottom:1px solid #eee}
+  .notfound{color:#b02a2a;}
+  .form-row{display:flex;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>BTEB Result</h1>
+  <div class="card">
+    <div class="form-row">
+      <input type="text" id="rollInput" placeholder="Enter Roll Number" />
+      <button id="checkBtn">Check</button>
+    </div>
+    <div id="output" class="output"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+// ✅ এখানে তোমার Google Sheet CSV লিঙ্ক বসাও
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/YOUR_PUBLISHED_CSV_LINK/pub?output=csv';
+
+let studentsData = [];
+
+Papa.parse(sheetUrl, {
+    download: true,
+    header: true,
+    complete: function(results) {
+        studentsData = results.data;
+        console.log('Students loaded', studentsData.length);
+    }
+});
+
+const rollInput = document.getElementById('rollInput');
+const checkBtn = document.getElementById('checkBtn');
+const output = document.getElementById('output');
+
+function renderResult(student) {
+    output.innerHTML = `<table class="result-table">
+        <tr><td><strong>Name</strong></td><td>${student.Name}</td></tr>
+        <tr><td><strong>Roll</strong></td><td>${student.Roll}</td></tr>
+        <tr><td><strong>Registration</strong></td><td>${student.Registration}</td></tr>
+        <tr><td><strong>Department</strong></td><td>${student.Department}</td></tr>
+        <tr><td><strong>Semester</strong></td><td>${student.Semester}</td></tr>
+        <tr><td><strong>GPA</strong></td><td>${student.GPA}</td></tr>
+    </table>`;
+}
+
+function renderNotFound(roll) {
+    output.innerHTML = `<div class="notfound">No result found for "${roll}"</div>`;
+}
+
+function checkResult() {
+    const roll = rollInput.value.trim();
+    if(!roll){ renderNotFound(''); return; }
+    const student = studentsData.find(s => s.Roll && s.Roll.toLowerCase() === roll.toLowerCase());
+    if(student) renderResult(student);
+    else renderNotFound(roll);
+}
+
+checkBtn.addEventListener('click', checkResult);
+rollInput.addEventListener('keypress', e => { if(e.key==='Enter') checkResult(); });
+</script>
+</body>
+</html>
